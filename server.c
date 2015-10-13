@@ -91,11 +91,11 @@ int main(int argc, char *argv[])
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
-        StringNewlineToNullTerminator(buffer);
+        //StringNewlineToNullTerminator(buffer);
 
         printf("strcmp: %s==%s:%d\n",buffer,credentials,check(buffer,credentials));
         if (check(buffer,credentials)==1) {
-        char success[256] = "Success, now what is the password?";
+        char success[256] = "SUCCESS";
         StringNullToNewlineTerminator(success);
             n = write(newsockfd,success,8);
         }
