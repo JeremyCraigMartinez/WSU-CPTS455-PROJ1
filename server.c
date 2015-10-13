@@ -35,6 +35,7 @@ char* StringNullToNewlineTerminator(char* string)
 	}
 }
 
+// function to check if two strings are similar with newline delimiter 
 int check(char *string, char* creds) {
     int second_newline_char = 0;
     while (second_newline_char < 2) {
@@ -47,7 +48,9 @@ int check(char *string, char* creds) {
     return 1;
 }
 
+// credentials to be checked (ID and username)
 char* credentials = "12345678\nhauser\n";
+// password to be checked after this ^^ is validated
 char* pass = "Password1\n";
 
 int main(int argc, char *argv[])
@@ -60,20 +63,25 @@ int main(int argc, char *argv[])
         fprintf(stderr,"ERROR, no port provided\n");
         exit(1);
     }
+	//set socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
        error("ERROR opening socket");
     bzero((char *) &serv_addr, sizeof(serv_addr));
+	//get port number from command line
     portno = atoi(argv[1]);
+	//
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(portno);
+	//bind socket to server
     if (bind(sockfd, (struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR on binding");
     listen(sockfd,5);
     clilen = sizeof(cli_addr);
 
-    while(1) {
+    while(1) {//while loop for continuous connections
+	//initial accept of handshake
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
         char welcome[256] = "welcome";
@@ -87,13 +95,13 @@ int main(int argc, char *argv[])
 
         //username and ID
         bzero(buffer,256);
-        n = read(newsockfd,buffer,255);
+        n = read(newsockfd,buffer,255);//read ID and username
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
         printf("strcmp: %s==%s:%d\n",buffer,credentials,check(buffer,credentials));
 	int fail;
-        if (check(buffer,credentials)==1) {
+        if (check(buffer,credentials)==1) {//if newline delimited strings match
         char success[256] = "SUCCESS";
         StringNullToNewlineTerminator(success);
             n = write(newsockfd,success,8);
@@ -114,11 +122,10 @@ int main(int argc, char *argv[])
         if (n < 0) error("ERROR reading from socket");
         printf("Received %d bytes, Here is the message: %s\n", n, buffer);
 
+	//manual use of ntohs 
 	unsigned short length = (unsigned short)buffer[0];
 	length = length << 4;
 	length = length | (unsigned short) buffer[1]; 
-        //short length = htons(buffer+2);//atoi(buffer);
-	//length = ntohs(length);
 
         //now the password
         bzero(buffer,256);
@@ -133,11 +140,11 @@ int main(int argc, char *argv[])
 	    sprintf(success,"congratulations hauser, you just revealed your password to the world");
 	    char success_len[5];
 	    bzero(success_len,5);
-	    short str_len = strlen(success);
+	    short int str_len = strlen(success);
 	    str_len = htons(str_len);
 	    sprintf(success_len,"%d",str_len);
-	    n = write(newsockfd,success_len,5);
-            n = write(newsockfd,success,str_len);
+	    n = write(newsockfd,&str_len,sizeof(short int));
+            n = write(newsockfd,success,strlen(success));
         }
         else {
             char f[256];
