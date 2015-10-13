@@ -91,8 +91,6 @@ int main(int argc, char *argv[])
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
-        //StringNewlineToNullTerminator(buffer);
-
         printf("strcmp: %s==%s:%d\n",buffer,credentials,check(buffer,credentials));
         if (check(buffer,credentials)==1) {
         char success[256] = "SUCCESS";
@@ -104,13 +102,19 @@ int main(int argc, char *argv[])
             close(newsockfd);
         }
 
-        //now the password
+        //now the password length
         bzero(buffer,256);
         n = read(newsockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
-        StringNewlineToNullTerminator(buffer);
+        int length = atoi(buffer);
+
+        //now the password
+        bzero(buffer,256);
+        n = read(newsockfd,buffer,255);
+        if (n < 0) error("ERROR reading from socket");
+        printf("Here is the message: %s\n",buffer);
 
         printf("strcmp: %s==%s:%d\n",buffer,pass,check(buffer,pass));
         if (check(buffer,pass)==1) {
