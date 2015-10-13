@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     listen(sockfd,5);
     clilen = sizeof(cli_addr);
 
-    int has_connected = false;
+    int has_connected = 0;
 
     while(1) {
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
@@ -47,8 +47,10 @@ int main(int argc, char *argv[])
         if (n < 0) error("ERROR reading from socket");
         printf("strcpy: %d",strcmp(buffer,credentials));
         printf("Here is the message: %s\n",buffer);
-        if (has_connected == false)
+        if (has_connected == 0) {
+            has_connected = 1;
             n = write(newsockfd,"welcome\n",8);
+        }
         n = write(newsockfd,"I got your message",18);
         if (n < 0) error("ERROR writing to socket");
     }
