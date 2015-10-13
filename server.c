@@ -11,6 +11,42 @@ void error(char *msg)
     exit(1);
 }
 
+char* StringNewlineToNullTerminator(char* string)
+{
+	char* targetChar = strchr(string, '\n');
+	if (targetChar == 0)
+		return 0; // Return nullptr, this is bad.
+	else
+	{
+		*targetChar = 0; // Null terminate the buffer to a C-string.
+		return string; //Return the first address of the string
+	}
+}
+
+char* StringNullToNewlineTerminator(char* string)
+{
+	char* targetChar = strchr(string, 0);
+	if (targetChar == 0)
+		return 0; // Return nullptr, this is bad.
+	else
+	{
+		*targetChar = '\n'; // Newline terminate the buffer to a TCP string.
+		return string; //Return the first address of the string
+	}
+}
+
+int check(char *string, char* creds) {
+    int second_newline_char = 0;
+    while (second_newline_char < 2) {
+        if (!(*string == *creds))
+	    return 0;
+        if (*string == '\n') second_newline_char++;
+        string++;
+        creds++;
+    }
+    return 1;
+}
+
 char* credentials = "username\nPassword1\n";
 
 int main(int argc, char *argv[])
@@ -36,12 +72,14 @@ int main(int argc, char *argv[])
     listen(sockfd,5);
     clilen = sizeof(cli_addr);
 
-
     while(1) {
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
+	char welcome[256] = "welcome";
+	StringNullToNewlineTerminator(welcome);
+
         if (newsockfd > 0) {
-            n = write(newsockfd,"welcome\n",8);
+            n = write(newsockfd,welcome,8);
         }
         if (newsockfd < 0) 
             error("ERROR on accept");
@@ -50,10 +88,16 @@ int main(int argc, char *argv[])
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
-        if (strcmp(buffer,credentials)==0) {
-            n = write(newsockfd,"SUCCESS",7);
+	//StringNewlineToNullTerminator(buffer);
+
+	printf("strcmp: %s==%s:%d\n",buffer,credentials,check(buffer,credentials));
+        if (check(buffer,credentials)==1) {
+	    char success[256] = "Success, now what is the password?";
+	    StringNullToNewlineTerminator(success);
+            n = write(newsockfd,success,8);
         }
         else {
+	    printf("world");
             close(newsockfd);
         }
         
