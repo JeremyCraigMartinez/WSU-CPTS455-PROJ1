@@ -92,15 +92,21 @@ int main(int argc, char *argv[])
         printf("Here is the message: %s\n",buffer);
 
         printf("strcmp: %s==%s:%d\n",buffer,credentials,check(buffer,credentials));
+	int fail;
         if (check(buffer,credentials)==1) {
         char success[256] = "SUCCESS";
         StringNullToNewlineTerminator(success);
             n = write(newsockfd,success,8);
+	    fail = 0;
         }
         else {
-        printf("world");
-            close(newsockfd);
+	    fail = 1;
+	    char failure[256] = "FAILURE";
+	    StringNullToNewlineTerminator(failure);
+            n = write(newsockfd,failure,8);
         }
+
+        if (!(fail)) {
 
         //now the password length
         bzero(buffer,256);
@@ -108,7 +114,8 @@ int main(int argc, char *argv[])
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
-        int length = atoi(buffer);
+        short length = atoi(buffer);
+	length = ntohs(length);
 
         //now the password
         bzero(buffer,256);
@@ -116,17 +123,26 @@ int main(int argc, char *argv[])
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
-        printf("strcmp: %s==%s:%d\n",buffer,pass,check(buffer,pass));
-        if (check(buffer,pass)==1) {
-            char success[256] = "SUCCESS";
+        printf("strcmp: %s==%s:%d\n",buffer,pass,strncmp(buffer,pass,length));
+        if (strncmp(buffer,pass,length)==0) {
+            char success[256];
+	    bzero(success,256);
+	    sprintf(success,"congratulations hauser, you just revealed your password to the world");
+	    printf("%s",success);
             StringNullToNewlineTerminator(success);
-            n = write(newsockfd,success,8);
+	    char success_len[5];
+	    bzero(success_len,5);
+	    short str_len = strlen(success);
+	    str_len = htons(str_len);
+	    sprintf(success_len,"%d",str_len);
+	    printf("%s",success_len);
+	    n = write(newsockfd,success_len,5);
+            n = write(newsockfd,success,str_len);
         }
         else {
-            printf("world");
             close(newsockfd);
         }
-        
+        }
         if (n < 0) error("ERROR writing to socket");
     }
     return 0; 
