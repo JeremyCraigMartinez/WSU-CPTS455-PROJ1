@@ -40,7 +40,8 @@ int main(int argc, char *argv[])
     while(1) {
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-        if (accept == 0) {
+        printf("%d", newsockfd);
+        if (newsockfd > 0) {
             n = write(newsockfd,"welcome\n",8);
         }
         if (newsockfd < 0) 
