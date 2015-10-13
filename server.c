@@ -47,7 +47,8 @@ int check(char *string, char* creds) {
     return 1;
 }
 
-char* credentials = "username\nPassword1\n";
+char* credentials = "12345678\nhauser\n";
+char* pass = "Password1\n";
 
 int main(int argc, char *argv[])
 {
@@ -75,29 +76,50 @@ int main(int argc, char *argv[])
     while(1) {
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-	char welcome[256] = "welcome";
-	StringNullToNewlineTerminator(welcome);
+        char welcome[256] = "welcome";
+        StringNullToNewlineTerminator(welcome);
 
         if (newsockfd > 0) {
             n = write(newsockfd,welcome,8);
         }
         if (newsockfd < 0) 
             error("ERROR on accept");
+
+        //username and ID
         bzero(buffer,256);
         n = read(newsockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
         printf("Here is the message: %s\n",buffer);
 
-	//StringNewlineToNullTerminator(buffer);
+        StringNewlineToNullTerminator(buffer);
 
-	printf("strcmp: %s==%s:%d\n",buffer,credentials,check(buffer,credentials));
+        printf("strcmp: %s==%s:%d\n",buffer,credentials,check(buffer,credentials));
         if (check(buffer,credentials)==1) {
-	    char success[256] = "Success, now what is the password?";
-	    StringNullToNewlineTerminator(success);
+        char success[256] = "Success, now what is the password?";
+        StringNullToNewlineTerminator(success);
             n = write(newsockfd,success,8);
         }
         else {
-	    printf("world");
+        printf("world");
+            close(newsockfd);
+        }
+
+        //now the password
+        bzero(buffer,256);
+        n = read(newsockfd,buffer,255);
+        if (n < 0) error("ERROR reading from socket");
+        printf("Here is the message: %s\n",buffer);
+
+        StringNewlineToNullTerminator(buffer);
+
+        printf("strcmp: %s==%s:%d\n",buffer,pass,check(buffer,pass));
+        if (check(buffer,pass)==1) {
+            char success[256] = "SUCCESS";
+            StringNullToNewlineTerminator(success);
+            n = write(newsockfd,success,8);
+        }
+        else {
+            printf("world");
             close(newsockfd);
         }
         
