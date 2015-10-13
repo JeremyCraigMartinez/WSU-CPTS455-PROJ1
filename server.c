@@ -40,7 +40,6 @@ int main(int argc, char *argv[])
     while(1) {
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 
-        printf("%d", newsockfd);
         if (newsockfd > 0) {
             n = write(newsockfd,"welcome\n",8);
         }
@@ -49,10 +48,15 @@ int main(int argc, char *argv[])
         bzero(buffer,256);
         n = read(newsockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
-        printf("strcpy: %d",strcmp(buffer,credentials));
         printf("Here is the message: %s\n",buffer);
 
-        n = write(newsockfd,"I got your message",18);
+        if (strcmp(buffer,credentials)==0) {
+            n = write(newsockfd,"SUCCESS",7);
+        }
+        else {
+            close(newsockfd);
+        }
+        
         if (n < 0) error("ERROR writing to socket");
     }
     return 0; 
