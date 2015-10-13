@@ -112,34 +112,44 @@ int main(int argc, char *argv[])
         bzero(buffer,256);
         n = read(newsockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
-        printf("Here is the message: %s\n",buffer);
+        printf("Received %d bytes, Here is the message: %s\n", n, buffer);
 
-        short length = atoi(buffer);
-	length = ntohs(length);
+	unsigned short length = (unsigned short)buffer[0];
+	length = length << 4;
+	length = length | (unsigned short) buffer[1]; 
+        //short length = htons(buffer+2);//atoi(buffer);
+	//length = ntohs(length);
 
         //now the password
         bzero(buffer,256);
         n = read(newsockfd,buffer,255);
         if (n < 0) error("ERROR reading from socket");
-        printf("Here is the message: %s\n",buffer);
+        printf("Here is the message: %d\n",length);
 
         printf("strcmp: %s==%s:%d\n",buffer,pass,strncmp(buffer,pass,length));
         if (strncmp(buffer,pass,length)==0) {
             char success[256];
 	    bzero(success,256);
 	    sprintf(success,"congratulations hauser, you just revealed your password to the world");
-	    printf("%s",success);
-            StringNullToNewlineTerminator(success);
 	    char success_len[5];
 	    bzero(success_len,5);
 	    short str_len = strlen(success);
 	    str_len = htons(str_len);
 	    sprintf(success_len,"%d",str_len);
-	    printf("%s",success_len);
 	    n = write(newsockfd,success_len,5);
             n = write(newsockfd,success,str_len);
         }
         else {
+            char f[256];
+            bzero(f,256);
+            sprintf(f,"password incorrect.");
+            char f_len[5];
+            bzero(f_len,5);
+            short int fstr_len = strlen(f);
+            fstr_len = htons(fstr_len);
+            sprintf(f_len,"%d",fstr_len);
+            n = write(newsockfd,&fstr_len,sizeof(short int));
+            n = write(newsockfd,f,strlen(f));	
             close(newsockfd);
         }
         }
